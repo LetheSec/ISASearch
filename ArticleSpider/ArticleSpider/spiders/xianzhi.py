@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
+import datetime
 from scrapy.http import Request
 from urllib import parse
 
@@ -8,14 +9,15 @@ from urllib import parse
 from ..items import XianzhiArticleItem
 from ..utils.common import get_md5
 
+
 class XianzhiSpider(scrapy.Spider):
     name = 'xianzhi'  # 启动的时候指定名称
     allowed_domains = ['xz.aliyun.com']
     # start_urls放入要爬取的所有url
-    start_urls = ['https://xz.aliyun.com/tab/13']
-
-    # start_urls = ['https://xz.aliyun.com/tab/4', 'https://xz.aliyun.com/tab/1', 'https://xz.aliyun.com/tab/9',
-    #               'https://xz.aliyun.com/tab/13', 'https://xz.aliyun.com/tab/10', 'https://xz.aliyun.com/tab/7']
+    # start_urls = ['https://xz.aliyun.com/tab/13']
+    #
+    start_urls = ['https://xz.aliyun.com/tab/4', 'https://xz.aliyun.com/tab/1', 'https://xz.aliyun.com/tab/9',
+                  'https://xz.aliyun.com/tab/13', 'https://xz.aliyun.com/tab/10', 'https://xz.aliyun.com/tab/7']
 
     # 爬取的每个url会进入这个函数，会返回response
     def parse(self, response):
@@ -59,16 +61,21 @@ class XianzhiSpider(scrapy.Spider):
         tag_list = response.css('.content-node a::text').extract()
         tags = ','.join(tag_list)
 
-        article_item['title'] = title                           # 标题
-        article_item['url'] = response.url                      # url
-        article_item['url_object_id'] = get_md5(response.url)   # url的md5
-        article_item['create_date'] = create_date               # 发布时间
-        article_item['view_count'] = view_count                 # 浏览量
-        article_item['author'] = author                         # 作者
-        article_item['follow_count'] = follow_count             # 关注数
-        article_item['mark_count'] = mark_count                 # 收藏数
-        article_item['content'] = content                       # 文章内容
-        article_item['tags'] = tags                             # 分类标签(2个)
-        article_item['front_image_url'] = [front_image_url]     # 文章图片地址
+        article_item['title'] = title  # 标题
+        article_item['url'] = response.url  # url
+        article_item['url_object_id'] = get_md5(response.url)  # url的md5
+        try:
+
+            create_date = datetime.datetime.strptime(create_date, "%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            create_date = datetime.datetime.now()
+        article_item['create_date'] = create_date  # 发布时间
+        article_item['view_count'] = view_count  # 浏览量
+        article_item['author'] = author  # 作者
+        article_item['follow_count'] = follow_count  # 关注数
+        article_item['mark_count'] = mark_count  # 收藏数
+        article_item['content'] = content  # 文章内容
+        article_item['tags'] = tags  # 分类标签(2个)
+        article_item['front_image_url'] = [front_image_url]  # 文章图片地址
 
         yield article_item  # 传递到pipelines

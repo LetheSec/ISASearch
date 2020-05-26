@@ -65,16 +65,19 @@ ROBOTSTXT_OBEY = False
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'ArticleSpider.pipelines.ArticlespiderPipeline': 300,
+    # 'ArticleSpider.pipelines.ArticlespiderPipeline': 300,
     # 'scrapy.pipelines.images.ImagesPipeline' : 1,        # 下载图片
-    'ArticleSpider.pipelines.ArticleImagePipeline': 1,     # 使用自定义Pipeline
+    # 'ArticleSpider.pipelines.JsonWithEncodingPipeline': 2,  # 自定义json导出
+    # 'ArticleSpider.pipelines.JsonExporterPipeline': 2,  # 使用json export导出
+    # 'ArticleSpider.pipelines.MysqlPipeline': 2,
+    'ArticleSpider.pipelines.MysqlTwistedPipeline': 2,
+    'ArticleSpider.pipelines.ArticleImagePipeline': 1,  # 使用自定义Pipeline
 
 }
 IMAGES_URLS_FIELD = 'front_image_url'  # 会去items找这个字段进行下载
 # 设置图片保存路径
 project_dir = os.path.abspath(os.path.dirname(__file__))
 IMAGES_STORE = os.path.join(project_dir, 'images')
-
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -96,3 +99,8 @@ IMAGES_STORE = os.path.join(project_dir, 'images')
 # HTTPCACHE_DIR = 'httpcache'
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+MYSQL_HOST = '127.0.0.1'
+MYSQL_DBNAME = 'article_spider'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = 'yuan123'
