@@ -4,8 +4,7 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-import codecs
-import json
+
 from scrapy.pipelines.images import ImagesPipeline
 from scrapy.exporters import JsonItemExporter
 from twisted.enterprise import adbapi
@@ -17,41 +16,8 @@ class ArticlespiderPipeline(object):
     def process_item(self, item, spider):
         return item
 
-# # 同步写入
-# class JsonWithEncodingPipeline(object):
-#     # #自定义json文件导出将传递进来的item写入文件中的Pipeline
-#     def __init__(self):
-#         self.file = codecs.open('article.json', 'w', encoding='utf-8')
-#
-#     # 执行item,将item写入json
-#     def process_item(self, item, spider):
-#         # 若不加ensure_ascii=False则写入汉字等会出错，直接将unicode写入文件中
-#         lines = json.dumps(dict(item), ensure_ascii=False) + "\n"
-#         self.file.write(lines)
-#         return item
-#
-#     def spider_closed(self):
-#         self.file.close()
 
-
-# class MysqlPipeline(object):
-#     """
-#     这样自定义的数据库插入操作，不是异步操作，后续可能会导致插入速度跟不上爬取速度
-#     """
 #
-#     def __init__(self):
-#         self.conn = MySQLdb.connect('127.0.0.1', 'root', 'yuan123', 'article_spider', charset='utf8', use_unicode=True)
-#         self.cursor = self.conn.cursor()
-#
-#     def process_item(self, item, spider):
-#         insert_sql = """insert into xianzhi_article(title, create_date, url, url_object_id, front_image_url,
-#                         front_image_path, author, view_count, follow_count, mark_count, tags, content)
-#                         values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-#         self.cursor.execute(insert_sql, (
-#             item['title'], item['create_date'], item['url'], item['url_object_id'], item['front_image_url'],
-#             item['front_image_path'], item['author'], item['view_count'], item['follow_count'], item['mark_count'],
-#             item['tags'], item['content']))
-#         self.conn.commit()
 
 
 # twisted提供异步连接，本身还是用的MysqlDB来连接
@@ -68,7 +34,7 @@ class MysqlTwistedPipeline(object):
             db=settings['MYSQL_DBNAME'],
             user=settings['MYSQL_USER'],
             passwd=settings['MYSQL_PASSWORD'],
-            charset='utf8',
+            charset='utf8mb4',
             cursorclass=MySQLdb.cursors.DictCursor,
             use_unicode=True
         )
@@ -86,15 +52,8 @@ class MysqlTwistedPipeline(object):
         print(failure)
 
     def do_insert(self, cursor, item):
-        # 执行具体的插入
-        insert_sql = """insert into xianzhi_article(title, create_date, url, url_object_id, front_image_url, 
-                                    front_image_path, author, view_count, follow_count, mark_count, tags, content) 
-                                    values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-        # 用的dbpool里取出来的一个cursor进行操作
-        cursor.execute(insert_sql, (
-            item['title'], item['create_date'], item['url'], item['url_object_id'], item['front_image_url'],
-            item['front_image_path'], item['author'], item['view_count'], item['follow_count'], item['mark_count'],
-            item['tags'], item['content']))
+        insert_sql, params = item.get_insert_sql()
+        cursor.execute(insert_sql, params)
 
 
 class JsonExporterPipeline(object):
@@ -117,8 +76,9 @@ class JsonExporterPipeline(object):
 class ArticleImagePipeline(ImagesPipeline):
     # 路径实际上是results[1]里的path
     def item_completed(self, results, item, info):
-        for ok, value in results:
-            image_file_path = value['path']  # 保存后的文件路径
-        item['front_image_path'] = image_file_path  # 图片本地保存路径
+        if 'front_image_url' in item:
+            for ok, value in results:
+                image_file_path = value['path']  # 保存后的文件路径
+            item['front_image_path'] = image_file_path  # 图片本地保存路径
         # 一定要return掉,下一个Pipeline还要用item
         return item

@@ -52,10 +52,12 @@ ROBOTSTXT_OBEY = False
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-# DOWNLOADER_MIDDLEWARES = {
-#    'ArticleSpider.middlewares.ArticlespiderDownloaderMiddleware': 543,
-# }
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy.downloadermiddlewares.retry.RetryMiddleware': None,
+    'ArticleSpider.middlewares.TooManyRequestsRetryMiddleware': 543
 
+}
+RETRY_HTTP_CODES = [429]
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
 # EXTENSIONS = {
@@ -65,11 +67,6 @@ ROBOTSTXT_OBEY = False
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    # 'ArticleSpider.pipelines.ArticlespiderPipeline': 300,
-    # 'scrapy.pipelines.images.ImagesPipeline' : 1,        # 下载图片
-    # 'ArticleSpider.pipelines.JsonWithEncodingPipeline': 2,  # 自定义json导出
-    # 'ArticleSpider.pipelines.JsonExporterPipeline': 2,  # 使用json export导出
-    # 'ArticleSpider.pipelines.MysqlPipeline': 2,
     'ArticleSpider.pipelines.MysqlTwistedPipeline': 2,
     'ArticleSpider.pipelines.ArticleImagePipeline': 1,  # 使用自定义Pipeline
 
@@ -100,7 +97,8 @@ IMAGES_STORE = os.path.join(project_dir, 'images')
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
+# Mysql config
 MYSQL_HOST = '127.0.0.1'
 MYSQL_DBNAME = 'article_spider'
 MYSQL_USER = 'root'
-MYSQL_PASSWORD = 'yuan123'
+MYSQL_PASSWORD = ''

@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 import scrapy
-import datetime
 from scrapy.http import Request
 from urllib import parse
 
-# from ArticleSpider.items import XianzhiArticleItem
-# from ArticleSpider.utils.common import get_md5
-from ..items import XianzhiArticleItem
+from ..items import XianzhiArticleItem, ArticleItemLoader
 from ..utils.common import get_md5
 
 
@@ -14,7 +11,8 @@ class XianzhiSpider(scrapy.Spider):
     name = 'xianzhi'  # 启动的时候指定名称
     allowed_domains = ['xz.aliyun.com']
     # start_urls放入要爬取的所有url
-    # start_urls = ['https://xz.aliyun.com/tab/13']
+    start_urls = ['https://xz.aliyun.com/tab/13']
+
     #
     start_urls = ['https://xz.aliyun.com/tab/4', 'https://xz.aliyun.com/tab/1', 'https://xz.aliyun.com/tab/9',
                   'https://xz.aliyun.com/tab/13', 'https://xz.aliyun.com/tab/10', 'https://xz.aliyun.com/tab/7']
@@ -35,47 +33,21 @@ class XianzhiSpider(scrapy.Spider):
             yield Request(url=parse.urljoin(response.url, next_url), callback=self.parse)
 
     def parse_detail(self, response):
-        article_item = XianzhiArticleItem()
-        # 尽量不用完整的xpath路径,因为有的节点是js生成的,但scrapy是爬取静态html页面
-        # xpath选择器
-        # title = response.xpath(
-        #     '//*[@id="Wrapper"]/div/div[1]/div[1]/div/div/div[1]/p/span/text()').extract_first("").strip()
-        # create_date = response.xpath('//span[@class="info-left"]/span[2]/text()').extract_first("").strip()
-        # view_count = response.xpath('//span[@class="info-left"]/span[4]/text()').extract_first("")[4:].strip()
-        # author = response.xpath('//div[@class="topic-info"]/span/a/span/text()').extract_first("").strip()
-        # follow_count = response.xpath('//span[@id="follow-count"]/text()').extract_first("").strip()
-        # mark_count = response.xpath('//span[@id="mark-count"]/text()').extract_first("").strip()
-        # content = response.xpath('//div[@id="topic_content"]').extract_first("")
-        # tag_list = response.xpath('//span[@class="content-node"]/span/a/text()').extract()
-        # tags = ','.join(tag_list)
 
-        # css选择器
-        front_image_url = response.meta.get('front_image_url', '')  # 文章封面图
-        title = response.css('.content-title::text').extract_first("")
-        create_date = response.css('.info-left span:nth-child(3)::text').extract_first("").strip()
-        view_count = response.css('.info-left span:nth-child(5)::text').extract_first("").strip()[4:]
-        author = response.css('.info-left span:nth-child(1)::text').extract_first("").strip()
-        follow_count = response.css('#follow-count::text').extract_first("").strip()
-        mark_count = response.css('#mark-count::text').extract_first("").strip()
-        content = response.css('#topic_content').extract_first("")
-        tag_list = response.css('.content-node a::text').extract()
-        tags = ','.join(tag_list)
+        # 通过item_loader加载item
+        item_loader = ArticleItemLoader(item=XianzhiArticleItem(), response=response)
+        item_loader.add_value('front_image_url', [response.meta.get('front_image_url', '')])
+        item_loader.add_css('title', '.content-title::text')  # 添加css选择器
+        item_loader.add_value('url', response.url)
+        item_loader.add_value('url_object_id', get_md5(response.url))
+        item_loader.add_css('create_date', '.info-left span:nth-child(3)::text')
+        item_loader.add_css('view_count', '.info-left span:nth-child(5)::text')
+        item_loader.add_css('author', '.info-left span:nth-child(1)::text')
+        item_loader.add_css('follow_count', '#follow-count::text')
+        item_loader.add_css('mark_count', '#mark-count::text')
+        item_loader.add_css('content', '#topic_content')
+        item_loader.add_css('tags', '.content-node a::text')
 
-        article_item['title'] = title  # 标题
-        article_item['url'] = response.url  # url
-        article_item['url_object_id'] = get_md5(response.url)  # url的md5
-        try:
-
-            create_date = datetime.datetime.strptime(create_date, "%Y-%m-%d %H:%M:%S")
-        except Exception as e:
-            create_date = datetime.datetime.now()
-        article_item['create_date'] = create_date  # 发布时间
-        article_item['view_count'] = view_count  # 浏览量
-        article_item['author'] = author  # 作者
-        article_item['follow_count'] = follow_count  # 关注数
-        article_item['mark_count'] = mark_count  # 收藏数
-        article_item['content'] = content  # 文章内容
-        article_item['tags'] = tags  # 分类标签(2个)
-        article_item['front_image_url'] = [front_image_url]  # 文章图片地址
+        article_item = item_loader.load_item()
 
         yield article_item  # 传递到pipelines
