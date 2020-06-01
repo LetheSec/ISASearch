@@ -22,7 +22,7 @@ NEWSPIDER_MODULE = 'ArticleSpider.spiders'
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-# CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 32
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -55,7 +55,6 @@ ROBOTSTXT_OBEY = False
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.retry.RetryMiddleware': None,
     'ArticleSpider.middlewares.TooManyRequestsRetryMiddleware': 543
-
 }
 RETRY_HTTP_CODES = [429]
 # Enable or disable extensions
@@ -67,9 +66,9 @@ RETRY_HTTP_CODES = [429]
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'ArticleSpider.pipelines.MysqlTwistedPipeline': 2,
     'ArticleSpider.pipelines.ArticleImagePipeline': 1,  # 使用自定义Pipeline
-
+    'ArticleSpider.pipelines.MysqlTwistedPipeline': 2,
+    'ArticleSpider.pipelines.ElasticsearchPipeline': 2
 }
 IMAGES_URLS_FIELD = 'front_image_url'  # 会去items找这个字段进行下载
 # 设置图片保存路径
@@ -101,4 +100,4 @@ IMAGES_STORE = os.path.join(project_dir, 'images')
 MYSQL_HOST = '127.0.0.1'
 MYSQL_DBNAME = 'article_spider'
 MYSQL_USER = 'root'
-MYSQL_PASSWORD = ''
+MYSQL_PASSWORD = 'yuan123'

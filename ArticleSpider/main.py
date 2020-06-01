@@ -13,6 +13,6 @@ import os
 sys.stderr = sys.stdout
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-# execute(["scrapy", "crawl", "xianzhi"])
+execute(["scrapy", "crawl", "xianzhi"])
 # execute(["scrapy", "crawl", "anquanke"])
-execute(["scrapy", "crawl", "sihou"])
+# execute(["scrapy", "crawl", "sihou"])

@@ -9,6 +9,8 @@ import scrapy
 import datetime
 from scrapy.loader.processors import MapCompose, TakeFirst, Join, Identity
 from scrapy.loader import ItemLoader
+from .models.es_types import XianzhiArticleType, AnquankeArticleType, SihouArticleType
+from w3lib.html import remove_tags
 
 
 class ArticlespiderItem(scrapy.Item):
@@ -46,8 +48,6 @@ class XianzhiArticleItem(scrapy.Item):
     )
     url = scrapy.Field()
     url_object_id = scrapy.Field()
-    title = scrapy.Field()
-    create_date = scrapy.Field()
     view_count = scrapy.Field(
         input_processor=MapCompose(xz_view)
     )
@@ -86,6 +86,24 @@ class XianzhiArticleItem(scrapy.Item):
             self.get('content', '')
         )
         return insert_sql, params
+
+    def save_to_es(self):
+        article = XianzhiArticleType()
+        article.title = self.get('title', '')
+        article.author = self.get('author', '')
+        article.create_date = self.get('create_date', '0000-00-00 00:00:00')
+        article.content = remove_tags(self.get('content', ''))
+        article.front_image_url = self['front_image_url']
+        if 'front_image_path' in self:
+            article.front_image_path = self.get('front_image_path', '')
+        article.view_count = self.get('view_count', '0')
+        article.comment_count = self.get('comment_count', '0')
+        article.mark_count = self.get('mark_count', '0')
+        article.url = self.get('url', '')
+        article.tags = self.get('tags', '')
+        article.meta.id = self.get('url_object_id', '')
+        article.save()
+        return
 
 
 class AnquankeArticleItem(scrapy.Item):
@@ -133,6 +151,24 @@ class AnquankeArticleItem(scrapy.Item):
 
         return insert_sql, params
 
+    def save_to_es(self):
+        article = AnquankeArticleType()
+        article.title = self.get('title', '')
+        article.author = self.get('author', '')
+        article.create_date = self.get('create_date', '0000-00-00 00:00:00')
+        article.content = remove_tags(self.get('content', ''))
+        article.front_image_url = self['front_image_url']
+        if 'front_image_path' in self:
+            article.front_image_path = self.get('front_image_path', '')
+        article.view_count = self.get('view_count', '0')
+        article.comment_count = self.get('comment_count', '0')
+        article.like_count = self.get('like_count', '0')
+        article.url = self.get('url', '')
+        article.tags = self.get('tags', '')
+        article.meta.id = self.get('url_object_id', '')
+        article.save()
+        return
+
 
 class SihouArticleItem(scrapy.Item):
     # Item中只有Field类型,可以接收各种数据类型
@@ -177,3 +213,21 @@ class SihouArticleItem(scrapy.Item):
             self.get('content', '')
         )
         return insert_sql, params
+
+    def save_to_es(self):
+        article = SihouArticleType()
+        article.title = self.get('title', '')
+        article.author = self.get('author', '')
+        article.create_date = self.get('create_date', '0000-00-00 00:00:00')
+        article.content = remove_tags(self.get('content', ''))
+        article.front_image_url = self['front_image_url']
+        if 'front_image_path' in self:
+            article.front_image_path = self.get('front_image_path', '')
+        article.view_count = self.get('view_count', '0')
+        article.praise_count = self.get('praise_count', '0')
+        article.url = self.get('url', '')
+        article.tags = self.get('tags', '')
+        article.meta.id = self.get('url_object_id', '')
+        article.save()
+        article.save()
+        return

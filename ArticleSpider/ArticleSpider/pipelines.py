@@ -17,9 +17,6 @@ class ArticlespiderPipeline(object):
         return item
 
 
-#
-
-
 # twisted提供异步连接，本身还是用的MysqlDB来连接
 class MysqlTwistedPipeline(object):
     # 启动spider时将dbpool传进来
@@ -46,6 +43,7 @@ class MysqlTwistedPipeline(object):
         # 使用twisted将mysql插入编程异步执行,将do_insert变为异步执行
         query = self.dbpool.runInteraction(self.do_insert, item)
         query.addErrback(self.handle_error)  # 异常处理
+        return item
 
     def handle_error(self, failure):
         # 异常处理,输出异常
@@ -54,6 +52,7 @@ class MysqlTwistedPipeline(object):
     def do_insert(self, cursor, item):
         insert_sql, params = item.get_insert_sql()
         cursor.execute(insert_sql, params)
+
 
 
 class JsonExporterPipeline(object):
@@ -82,3 +81,10 @@ class ArticleImagePipeline(ImagesPipeline):
             item['front_image_path'] = image_file_path  # 图片本地保存路径
         # 一定要return掉,下一个Pipeline还要用item
         return item
+
+
+class ElasticsearchPipeline(object):
+    # 将数据写入es中
+    def process_item(self, item, spider):
+        # 将item转换为es的数据
+        item.save_to_es()
