@@ -22,7 +22,7 @@ sihou_es = connections.create_connection(XianzhiArticleType._doc_type.using)
 
 # 连接到远程redis服务器
 settings = get_project_settings()
-redis_cli = redis.StrictRedis(host=settings.get('REDIS_HOST'), password=settings.get('REDIS_PASSWORD'))
+redis_cli = redis.StrictRedis(host=settings.get('REDIS_HOST'), password=settings.get('REDIS_PARAMS')['password'])
 
 
 class ArticlespiderItem(scrapy.Item):

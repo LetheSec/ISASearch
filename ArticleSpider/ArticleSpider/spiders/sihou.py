@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-import scrapy
 from scrapy.http import Request
 from ..items import ArticleItemLoader, SihouArticleItem
 from ..utils.common import get_md5
+from scrapy_redis.spiders import RedisSpider
 
 
-class A4houSpider(scrapy.Spider):
+class A4houSpider(RedisSpider):
     name = 'sihou'
-    allowed_domains = ['4hou.com']
-    start_urls = ['https://www.4hou.com']
+    redis_key = 'sihou:start_urls'
+
+    # allowed_domains = ['4hou.com']
+    # start_urls = ['https://www.4hou.com']
 
     # 爬取的每个url会进入这个函数，会返回response
     def parse(self, response):

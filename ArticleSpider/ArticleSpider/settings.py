@@ -15,6 +15,19 @@ BOT_NAME = 'ArticleSpider'
 SPIDER_MODULES = ['ArticleSpider.spiders']
 NEWSPIDER_MODULE = 'ArticleSpider.spiders'
 
+# Enables scheduling storing requests queue in redis.
+SCHEDULER = "scrapy_redis.scheduler.Scheduler"
+
+# Ensure all spiders share same duplicates filter through redis.
+DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
+
+ITEM_PIPELINES = {
+    'ArticleSpider.pipelines.ArticleImagePipeline': 1,  # 使用自定义Pipeline
+    'ArticleSpider.pipelines.MysqlTwistedPipeline': 2,
+    'ArticleSpider.pipelines.ElasticsearchPipeline': 2,
+    'scrapy_redis.pipelines.RedisPipeline': 300
+}
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 # USER_AGENT = 'ArticleSpider (+http://www.yourdomain.com)'
 
@@ -65,11 +78,15 @@ RETRY_HTTP_CODES = [429]
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-    'ArticleSpider.pipelines.ArticleImagePipeline': 1,  # 使用自定义Pipeline
-    'ArticleSpider.pipelines.MysqlTwistedPipeline': 2,
-    'ArticleSpider.pipelines.ElasticsearchPipeline': 2
-}
+
+
+# ITEM_PIPELINES = {
+#     'ArticleSpider.pipelines.ArticleImagePipeline': 1,  # 使用自定义Pipeline
+#     'ArticleSpider.pipelines.MysqlTwistedPipeline': 2,
+#     'ArticleSpider.pipelines.ElasticsearchPipeline': 2
+# }
+
+
 IMAGES_URLS_FIELD = 'front_image_url'  # 会去items找这个字段进行下载
 # 设置图片保存路径
 project_dir = os.path.abspath(os.path.dirname(__file__))
@@ -102,6 +119,8 @@ MYSQL_DBNAME = 'article_spider'
 MYSQL_USER = 'root'
 MYSQL_PASSWORD = ''
 
-# Redis Config
 REDIS_HOST = ''
-REDIS_PASSWORD = ''
+REDIS_PORT = 6379
+REDIS_PARAMS = {
+    'password': ''
+}

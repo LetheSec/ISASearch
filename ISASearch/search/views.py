@@ -14,7 +14,7 @@ from elasticsearch import Elasticsearch
 from search.models import XianzhiArticleType, AnquankeArticleType, SihouArticleType
 
 # 初始化一个ES连接,可指定多个主机(es支持分布式)
-client = Elasticsearch(hosts=["127.0.0.1"])
+client = Elasticsearch(hosts=["localhost"])
 
 redis_cli = redis.StrictRedis(host=settings.REDIS_HOST, password=settings.REDIS_PASS, charset='utf-8',
                               decode_responses=True)

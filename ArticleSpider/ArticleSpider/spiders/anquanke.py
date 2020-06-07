@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
-import scrapy
+
 import json
 from scrapy.http import Request
 from ..items import AnquankeArticleItem, ArticleItemLoader
 from ..utils.common import get_md5
+from scrapy_redis.spiders import RedisSpider
 
 
-class AnquankeSpider(scrapy.Spider):
+class AnquankeSpider(RedisSpider):
     name = 'anquanke'
-    allowed_domains = ['api.anquanke.com', 'anquanke.com']
-    start_urls = ['https://api.anquanke.com/data/v1/posts?size=500']
+    redis_key = 'anquanke:start_urls'
+
+    # allowed_domains = ['api.anquanke.com', 'anquanke.com']
+    # start_urls = ['https://api.anquanke.com/data/v1/posts?size=500']
 
     def parse(self, response):
         res = json.loads(response.text)
