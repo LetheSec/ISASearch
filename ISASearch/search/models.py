@@ -1,3 +1,7 @@
+from django.db import models
+
+# Create your models here.
+
 # -*- coding: utf-8 -*-
 # @Time    : 2020/6/1 11:53
 # @Author  : Yuan.XJ
@@ -6,7 +10,7 @@
 
 from elasticsearch_dsl import DocType, Date, Keyword, Text, Integer, Completion
 from elasticsearch_dsl.connections import connections
-from elasticsearch_dsl.analysis import CustomAnalyzer as _CustomAnalyzer
+from elasticsearch_dsl.analysis import CustomAnalyzer  as _CustomAnalyzer
 
 connections.create_connection(hosts=['localhost'])
 

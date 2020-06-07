@@ -7,10 +7,22 @@
 
 import scrapy
 import datetime
+import redis
 from scrapy.loader.processors import MapCompose, TakeFirst, Join, Identity
 from scrapy.loader import ItemLoader
 from .models.es_types import XianzhiArticleType, AnquankeArticleType, SihouArticleType
 from w3lib.html import remove_tags
+from elasticsearch_dsl.connections import connections
+from scrapy.utils.project import get_project_settings
+
+# 连接到es,生成es的实例
+xianzhi_es = connections.create_connection(XianzhiArticleType._doc_type.using)
+anquanke_es = connections.create_connection(XianzhiArticleType._doc_type.using)
+sihou_es = connections.create_connection(XianzhiArticleType._doc_type.using)
+
+# 连接到远程redis服务器
+settings = get_project_settings()
+redis_cli = redis.StrictRedis(host=settings.get('REDIS_HOST'), password=settings.get('REDIS_PASSWORD'))
 
 
 class ArticlespiderItem(scrapy.Item):
@@ -38,6 +50,24 @@ def strip(value):
 
 def xz_view(value):
     return value[4:]
+
+
+def gen_suggests(index, info_tuple, es):
+    # 根据字符串生成搜索建议数组
+    used_words = set()  # 去重
+    suggests = []
+    for text, weight in info_tuple:
+        if text:
+            # 调用es的analyze接口分析字符串,进行分词
+            words = es.indices.analyze(index=index, analyzer='ik_max_word', params={'filter': ['lowercase']}, body=text)
+            analyzed_words = set([r['token'] for r in words['tokens'] if len(r['token']) > 1])  # 过滤掉只有一个词的
+            new_words = analyzed_words - used_words  # 已经存在的词过滤掉
+        else:
+            new_words = set()
+
+        if new_words:
+            suggests.append({'input': list(new_words), 'weight': weight})
+    return suggests
 
 
 class XianzhiArticleItem(scrapy.Item):
@@ -102,7 +132,10 @@ class XianzhiArticleItem(scrapy.Item):
         article.url = self.get('url', '')
         article.tags = self.get('tags', '')
         article.meta.id = self.get('url_object_id', '')
+        article.suggest = gen_suggests(XianzhiArticleType._doc_type.index, ((article.title, 10), (article.tags, 7)),
+                                       xianzhi_es)
         article.save()
+        redis_cli.incr("xianzhi_count")
         return
 
 
@@ -166,7 +199,11 @@ class AnquankeArticleItem(scrapy.Item):
         article.url = self.get('url', '')
         article.tags = self.get('tags', '')
         article.meta.id = self.get('url_object_id', '')
+        # 生成搜索建议词
+        article.suggest = gen_suggests(AnquankeArticleType._doc_type.index, ((article.title, 10), (article.tags, 7)),
+                                       anquanke_es)
         article.save()
+        redis_cli.incr("anquanke_count")
         return
 
 
@@ -228,6 +265,8 @@ class SihouArticleItem(scrapy.Item):
         article.url = self.get('url', '')
         article.tags = self.get('tags', '')
         article.meta.id = self.get('url_object_id', '')
+        article.suggest = gen_suggests(SihouArticleType._doc_type.index, ((article.title, 10), (article.tags, 7)),
+                                       sihou_es)
         article.save()
-        article.save()
+        redis_cli.incr("sihou_count")
         return

@@ -22,7 +22,7 @@ NEWSPIDER_MODULE = 'ArticleSpider.spiders'
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 50
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -100,4 +100,8 @@ IMAGES_STORE = os.path.join(project_dir, 'images')
 MYSQL_HOST = '127.0.0.1'
 MYSQL_DBNAME = 'article_spider'
 MYSQL_USER = 'root'
-MYSQL_PASSWORD = 'yuan123'
+MYSQL_PASSWORD = ''
+
+# Redis Config
+REDIS_HOST = ''
+REDIS_PASSWORD = ''

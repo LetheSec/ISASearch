@@ -1,0 +1,332 @@
+<!DOCTYPE html >
+<html xmlns="http://www.w3.org/1999/xhtml">
+{% load staticfiles %}
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>ISA Search 搜索引擎</title>
+    <link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'css/result.css' %}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<div id="container">
+    <div id="hd" class="ue-clear">
+        <a href="/">
+            <div class="logo"></div>
+        </a>
+        <div class="inputArea">
+            <input type="text" class="searchInput" value="{{ key_words }}"/>
+            <input type="button" class="searchButton" onclick="add_search()"/>
+            <ul class="dataList"></ul>
+        </div>
+    </div>
+    <div id="bd" class="ue-clear">
+        <div id="main" style="overflow: hidden">
+            <div class="sideBar">
+
+                <div class="subfield">网站</div>
+                <ul class="subfieldContext">
+                    <li>
+                        <span class="name"><a href="https://xz.aliyun.com/">先知社区</a></span>
+                        <span class="unit">({{ article_count.0 }})</span>
+                    </li>
+                    <li>
+                        <span class="name"><a href="https://www.anquanke.com/">安全客</a></span>
+                        <span class="unit">({{ article_count.1 }})</span>
+                    </li>
+                    <li>
+                        <span class="name"><a href="https://www.4hou.com/">嘶吼</a></span>
+                        <span class="unit">({{ article_count.2 }})</span>
+                    </li>
+                </ul>
+
+
+                <div class="sideBarShowHide">
+                    <a href="javascript:;" class="icon"></a>
+                </div>
+            </div>
+            <div class="historyArea">
+                <div class="hotSearch">
+                    <h5>热门搜索</h5>
+                    <ul class="historyList">
+                        {% for search_word in topn_search %}
+                            <li><a href="/search?q={{ search_word }}">{{ search_word }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="mySearch">
+                    <h5>我的搜索</h5>
+                    <ul class="historyList">
+
+                    </ul>
+                </div>
+            </div>
+            <div class="resultArea">
+                <p class="resultTotal">
+                    <span class="info">找到约&nbsp;<span class="totalResult">{{ total_nums }}</span>&nbsp;条结果(用时<span
+                            class="time">{{ last_seconds }}</span>秒)，共约<span
+                            class="totalPage">{{ page_nums }}</span>页</span>
+                </p>
+                <div class="resultList" style="float: left">
+
+                    {% for hit in all_hits %}
+                        <div class="resultItem">
+
+                            <div class="itemHead">
+
+                                <a href="{{ hit.url }}" target="_blank" class="title">
+                                    {% autoescape off %}{{ hit.title }}{% endautoescape %}</a>
+                                <span class="divsion">-</span>
+                                <span class="fileType">
+                                    <span class="label">作者：</span>
+                                    <span class="value">{{ hit.author }}</span>
+                                </span>
+                                <span class="fileType">
+                                    <span class="label">标签：</span>
+                                    <span class="value">{% autoescape off %}{{ hit.tags }}{% endautoescape %}</span>
+                                </span>
+                                <span class="dependValue">
+                                    <span class="label">得分：</span>
+                                    <span class="value">{{ hit.score }}</span>
+                                </span>
+                            </div>
+                            <div class="itemBody">
+                                {% autoescape off %}{{ hit.content }}{% endautoescape %}
+                            </div>
+                            <div class="itemFoot">
+                                <span class="info">
+                                    <label>来源网站：</label>
+                                    <span class="value">{{ hit.source_site }}</span>
+                                </span>
+                                <span class="info">
+                                    <label>发布时间：</label>
+                                    <span class="value">{{ hit.create_date }}</span>
+                                </span>
+                                <span class="info">
+                                    <label>阅读量：</label>
+                                    <span class="value">{{ hit.view_count }}</span>
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                </div>
+                <!-- 分页 -->
+                <div class="pagination ue-clear"></div>
+                <!-- 相关搜索 -->
+
+
+            </div>
+
+        </div><!-- End of main -->
+    </div><!--End of bd-->
+</div>
+
+</body>
+<script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/global.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/pagination.js' %}"></script>
+<script type="text/javascript">
+    var search_url = "{% url 'search' %}"
+
+    $('.searchList').on('click', '.searchItem', function () {
+        $('.searchList .searchItem').removeClass('current');
+        $(this).addClass('current');
+
+    });
+
+    function removeByValue(arr, val) {
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i] == val) {
+                arr.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    $('.sideBarShowHide a').click(function (e) {
+        if ($('#main').hasClass('sideBarHide')) {
+            $('#main').removeClass('sideBarHide');
+            $('#container').removeClass('sideBarHide');
+        } else {
+            $('#main').addClass('sideBarHide');
+            $('#container').addClass('sideBarHide');
+        }
+
+    });
+
+    var key_words = "{{key_words}}"
+    //分页
+    $(".pagination").pagination({{ total_nums }}, {
+        current_page:{{ page|add:'-1' }}, //当前页码
+        items_per_page: 15,
+        display_msg: true,
+        callback: pageselectCallback
+    });
+
+    function pageselectCallback(page_id, jq) {
+        window.location.href = search_url + '?q=' + key_words + '&p=' + (page_id + 1)
+    }
+
+    setHeight();
+    $(window).resize(function () {
+        setHeight();
+    });
+
+    function setHeight() {
+        if ($('#container').outerHeight() < $(window).height()) {
+            $('#container').height($(window).height() - 33);
+        }
+    }
+</script>
+<script type="text/javascript">
+    function htmlSpecialChars(str) {
+        var s = "";
+        if (str.length == 0) return "";
+        for (var i = 0; i < str.length; i++) {
+            switch (str.substr(i, 1)) {
+                case "<":
+                    s += "&lt;";
+                    break;
+                case ">":
+                    s += "&gt;";
+                    break;
+                case "&":
+                    s += "&amp;";
+                    break;
+                case " ":
+                    if (str.substr(i + 1, 1) == " ") {
+                        s += " &nbsp;";
+                        i++;
+                    } else s += " ";
+                    break;
+                case "\"":
+                    s += "&quot;";
+                    break;
+                case "\n":
+                    s += "<br>";
+                    break;
+                default:
+                    s += str.substr(i, 1);
+                    break;
+            }
+        }
+        return s;
+    }
+
+    var searchArr;
+    //定义一个search的，判断浏览器有无数据存储（搜索历史）
+    if (localStorage.search) {
+        //如果有，转换成 数组的形式存放到searchArr的数组里（localStorage以字符串的形式存储，所以要把它转换成数组的形式）
+        searchArr = localStorage.search.split(",")
+    } else {
+        //如果没有，则定义searchArr为一个空的数组
+        searchArr = [];
+    }
+    //把存储的数据显示出来作为搜索历史
+    MapSearchArr();
+
+    function add_search() {
+        var val = $(".searchInput").val();
+        if (val.length >= 2) {
+            //点击搜索按钮时，去重
+            KillRepeat(val);
+            //去重后把数组存储到浏览器localStorage
+            localStorage.search = searchArr;
+            //然后再把搜索内容显示出来
+            MapSearchArr();
+        }
+
+        window.location.href = search_url + '?q=' + val
+
+    }
+
+    function MapSearchArr() {
+        var tmpHtml = "";
+        var arrLen = 0
+        if (searchArr.length > 6) {
+            arrLen = 6
+        } else {
+            arrLen = searchArr.length
+        }
+        for (var i = 0; i < arrLen; i++) {
+            tmpHtml += '<li><a href="/search?q=' + searchArr[i] + '">' + htmlSpecialChars(searchArr[i]) + '</a></li>'
+        }
+        $(".mySearch .historyList").append(tmpHtml);
+    }
+
+    //去重
+    function KillRepeat(val) {
+        var kill = 0;
+        for (var i = 0; i < searchArr.length; i++) {
+            if (val === searchArr[i]) {
+                kill++;
+            }
+        }
+        if (kill < 1) {
+            searchArr.unshift(val);
+        } else {
+            removeByValue(searchArr, val)
+            searchArr.unshift(val)
+        }
+    }
+
+    $('.hideDownloead a').click(function (e) {
+        if ($(this).next().hasClass('showDownloead')) {
+            $(this).next().removeClass('showDownloead');
+        } else {
+            $(this).next().addClass('showDownloead');
+        }
+    });
+</script>
+<script type="text/javascript">
+    var suggest_url = "{% url "suggest" %}"
+    var search_url = "{% url "search" %}"
+
+
+    $('.searchList').on('click', '.searchItem', function () {
+        $('.searchList .searchItem').removeClass('current');
+        $(this).addClass('current');
+    });
+
+    function removeByValue(arr, val) {
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i] == val) {
+                arr.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+
+    // 搜索建议
+    $(function () {
+        $('.searchInput').bind(' input propertychange ', function () {
+            var searchText = $(this).val();
+            var tmpHtml = ""
+            $.ajax({
+                cache: false,
+                type: 'get',
+                dataType: 'json',
+                url: suggest_url + "?s=" + searchText,
+                async: true,
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        tmpHtml += '<li><a href="' + search_url + '?q=' + data[i] + '">' + data[i] + '</a></li>'
+                    }
+                    $(".dataList").html("")
+                    $(".dataList").append(tmpHtml);
+                    if (data.length == 0) {
+                        $('.dataList').hide()
+                    } else {
+                        $('.dataList').show()
+                    }
+                }
+            });
+        });
+    })
+
+    hideElement($('.dataList'), $('.searchInput'));
+
+</script>
+</html>
