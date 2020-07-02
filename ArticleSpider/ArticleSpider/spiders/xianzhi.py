@@ -27,8 +27,8 @@ class XianzhiSpider(RedisSpider):
         # 解析列表页中的所有文章url并交给scrapy下载后并进行解析
         post_nodes = response.css('table.table.topic-list tr')
         for post_node in post_nodes:
-            image_url = post_node.css('a.user-link img::attr(src)').extract_first()  # 图片地址
-            post_url = post_node.css('a.topic-title::attr(href)').extract_first()
+            image_url = post_node.css('a.user-link img::attr(src)').extract_first()     # 图片地址
+            post_url = post_node.css('a.topic-title::attr(href)').extract_first()       # 获取文章的地址
             yield Request(url=parse.urljoin(response.url, post_url), meta={"front_image_url": image_url},
                           callback=self.parse_detail)
 

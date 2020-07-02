@@ -46,7 +46,7 @@ CONCURRENT_REQUESTS = 50
 # CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-# COOKIES_ENABLED = False
+COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
 # TELNETCONSOLE_ENABLED = False
@@ -67,9 +67,12 @@ CONCURRENT_REQUESTS = 50
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.retry.RetryMiddleware': None,
-    'ArticleSpider.middlewares.TooManyRequestsRetryMiddleware': 543
+    'ArticleSpider.middlewares.RandomUserAgentMiddlware': 543,
+    'ArticleSpider.middlewares.TooManyRequestsRetryMiddleware': 543,  # 处理Too many requests的middleware
 }
 RETRY_HTTP_CODES = [429]
+
+RANDOM_UA_TYPE = 'random'  # 设置UA随机类型
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
 # EXTENSIONS = {
@@ -119,7 +122,8 @@ MYSQL_DBNAME = 'article_spider'
 MYSQL_USER = 'root'
 MYSQL_PASSWORD = ''
 
-REDIS_HOST = ''
+REDIS_HOST = '127.0.0.1'
+# REDIS_HOST = '129.211.8.105'
 REDIS_PORT = 6379
 REDIS_PARAMS = {
     'password': ''

@@ -15,7 +15,7 @@ class A4houSpider(RedisSpider):
     # 爬取的每个url会进入这个函数，会返回response
     def parse(self, response):
         # types = response.css('div.technology a::attr(href)').extract()
-        for type_url in response.css('div.technology a::attr(href)').extract():
+        for type_url in response.css('div.technology a::attr(href)').extract(): # 获取各个分类标签
             for i in range(1, 150):
                 page = "?page={}".format(i)
                 yield Request(url=type_url + page, callback=self.parse_post)
@@ -50,5 +50,4 @@ class A4houSpider(RedisSpider):
         item_loader.add_css('tags', 'span.lei::text')
 
         article_item = item_loader.load_item()
-
         yield article_item  # 传递到pipelines

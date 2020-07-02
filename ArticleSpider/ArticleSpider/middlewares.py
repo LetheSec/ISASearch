@@ -10,10 +10,36 @@ from scrapy import signals
 import time
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from scrapy.utils.response import response_status_message
+from fake_useragent import UserAgent
+# from ArticleSpider.tools.crawl_xici_ip import GetIP
+
+class RandomUserAgentMiddlware(object):
+    # 随机更换user-agent
+    def __init__(self, crawler):
+        super(RandomUserAgentMiddlware, self).__init__()
+        self.ua = UserAgent()
+        self.ua_type = crawler.settings.get("RANDOM_UA_TYPE", "random")
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler)
+
+    def process_request(self, request, spider):
+        def get_ua():
+            return getattr(self.ua, self.ua_type)
+
+        request.headers.setdefault('User-Agent', get_ua())
+
+
+# class RandomProxyMiddleware(object):
+#     # 动态设置ip代理
+#     def process_request(self, request, spider):
+#         get_ip = GetIP()
+#         request.meta["proxy"] = get_ip.get_random_ip()
 
 
 class TooManyRequestsRetryMiddleware(RetryMiddleware):
-
+    # 处理Too many requests,即暂停爬虫一段时间在继续
     def __init__(self, crawler):
         super(TooManyRequestsRetryMiddleware, self).__init__(crawler.settings)
         self.crawler = crawler
@@ -28,7 +54,8 @@ class TooManyRequestsRetryMiddleware(RetryMiddleware):
         elif response.status == 429:
             self.crawler.engine.pause()
             print("Too many requests, spider pause 15 seconds.")
-            time.sleep(15)  # If the rate limit is renewed in a minute, put 60 seconds, and so on.
+            # If the rate limit is renewed in a minute, put 15 seconds, and so on.
+            time.sleep(15)
             self.crawler.engine.unpause()
             reason = response_status_message(response.status)
             return self._retry(request, reason, spider) or response
@@ -36,7 +63,6 @@ class TooManyRequestsRetryMiddleware(RetryMiddleware):
             reason = response_status_message(response.status)
             return self._retry(request, reason, spider) or response
         return response
-
 
 
 class ArticlespiderSpiderMiddleware:

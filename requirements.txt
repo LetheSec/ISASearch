@@ -1,0 +1,11 @@
+Twisted==20.3.0
+fake_useragent==0.1.11
+redis==3.5.2
+w3lib==1.22.0
+Django==1.11.17
+elasticsearch_dsl==5.1.0
+requests==2.23.0
+mmh3==2.5.1
+elasticsearch==5.5.3
+six==1.15.0
+Scrapy==2.1.0

@@ -87,7 +87,10 @@ class SearchView(View):
         except:
             page = 1
 
+
         article_count = [redis_cli.get("xianzhi_count"), redis_cli.get("anquanke_count"), redis_cli.get("sihou_count")]
+
+
 
         start_time = datetime.now()
         xz_response = client.search(
