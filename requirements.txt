@@ -8,4 +8,4 @@ requests==2.23.0
 mmh3==2.5.1
 elasticsearch==5.5.3
 six==1.15.0
-Scrapy==2.1.0
+Scrapy==2.6.0
