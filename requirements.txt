@@ -1,4 +1,4 @@
-Twisted==20.3.0
+Twisted==22.4.0
 fake_useragent==0.1.11
 redis==3.5.2
 w3lib==1.22.0
