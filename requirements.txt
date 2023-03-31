@@ -1,6 +1,6 @@
 Twisted==20.3.0
 fake_useragent==0.1.11
-redis==3.5.2
+redis==4.4.4
 w3lib==1.22.0
 Django==1.11.17
 elasticsearch_dsl==5.1.0
